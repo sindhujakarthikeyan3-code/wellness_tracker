@@ -53,6 +53,7 @@ def register_page():
     return render_template("register.html")
 
 # ------------------ AUTH ------------------
+# ------------------ AUTH ------------------
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -62,11 +63,11 @@ def register():
     password = data.get('password')
 
     if not email or not password:
-        return jsonify({"status": "error", "message": "Missing fields"})
+        return "Missing fields"
 
     existing_user = User.query.filter_by(email=email).first()
     if existing_user:
-        return jsonify({"status": "error", "message": "User already exists"})
+        return "User already exists"
 
     hashed = generate_password_hash(password)
 
@@ -74,7 +75,8 @@ def register():
     db.session.add(user)
     db.session.commit()
 
-   return redirect("/login")
+    return redirect("/login")
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -83,19 +85,16 @@ def login():
     email = data.get('email')
     password = data.get('password')
 
+    if not email or not password:
+        return "Missing fields"
+
     user = User.query.filter_by(email=email).first()
 
     if user and check_password_hash(user.password, password):
         session["user"] = user.id
-       return redirect("/")
+        return redirect("/")
 
-    return jsonify({"status": "error", "message": "Invalid credentials"})
-
-@app.route('/logout')
-def logout():
-    session.pop("user", None)
-    return redirect("/login")
-
+    return "Invalid credentials"
 # ------------------ BMI ------------------
 
 @app.route('/bmi', methods=['POST'])
