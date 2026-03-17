@@ -74,7 +74,7 @@ def register():
     db.session.add(user)
     db.session.commit()
 
-    return jsonify({"status": "success"})
+   return redirect("/login")
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -87,7 +87,7 @@ def login():
 
     if user and check_password_hash(user.password, password):
         session["user"] = user.id
-        return jsonify({"status": "success"})
+       return redirect("/")
 
     return jsonify({"status": "error", "message": "Invalid credentials"})
 
