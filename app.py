@@ -8,11 +8,11 @@ app = Flask(__name__)
 # ------------------ CONFIG ------------------
 app.secret_key = os.environ.get("SECRET_KEY", "supersecretkey")
 
-# Database
+# Database (SQLite)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Session fix for Render
+# Session fix for Render (HTTPS)
 if os.environ.get("RENDER"):
     app.config.update(
         SESSION_COOKIE_SECURE=True,
@@ -37,11 +37,13 @@ class Weight(db.Model):
     weight = db.Column(db.Float, nullable=False)
 
 # ------------------ ROUTES ------------------
-
 @app.route('/')
 def home():
     if "user" in session:
-        return render_template("dashboard.html")
+        # Pass weights for the dashboard chart
+        weights = Weight.query.filter_by(user_id=session["user"]).all()
+        weight_list = [w.weight for w in weights]
+        return render_template("dashboard.html", weights=weight_list)
     return redirect("/login")
 
 @app.route('/login')
@@ -52,80 +54,72 @@ def login_page():
 def register_page():
     return render_template("register.html")
 
-# ------------------ AUTH ------------------
-# ------------------ AUTH ------------------
+@app.route('/logout')
+def logout():
+    session.pop("user", None)
+    return redirect("/login")
 
+# ------------------ AUTH ------------------
 @app.route('/register', methods=['POST'])
 def register():
-    data = request.get_json(silent=True) or request.form
+    # Handle both form and JSON
+    data = request.form or request.get_json(silent=True)
 
-    email = data.get('email')
-    password = data.get('password')
+    email = data.get('email', '').strip()
+    password = data.get('password', '').strip()
 
     if not email or not password:
-        return "Missing fields"
+        return jsonify({"status": "error", "message": "Missing fields"})
 
-    existing_user = User.query.filter_by(email=email).first()
-    if existing_user:
-        return "User already exists"
+    if User.query.filter_by(email=email).first():
+        return jsonify({"status": "error", "message": "User already exists"})
 
     hashed = generate_password_hash(password)
-
     user = User(email=email, password=hashed)
     db.session.add(user)
     db.session.commit()
 
-    return redirect("/login")
-
+    session["user"] = user.id
+    return redirect("/")
 
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.get_json(silent=True) or request.form
+    data = request.form or request.get_json(silent=True)
 
-    email = data.get('email')
-    password = data.get('password')
-
-    if not email or not password:
-        return "Missing fields"
+    email = data.get('email', '').strip()
+    password = data.get('password', '').strip()
 
     user = User.query.filter_by(email=email).first()
 
     if user and check_password_hash(user.password, password):
         session["user"] = user.id
         return redirect("/")
+    return render_template("login.html", error="Invalid credentials")
 
-    return "Invalid credentials"
 # ------------------ BMI ------------------
-
 @app.route('/bmi', methods=['POST'])
 def bmi():
-    data = request.get_json(silent=True) or request.form
-
+    data = request.form or request.get_json(silent=True)
     try:
         weight = float(data.get('weight'))
         height = float(data.get('height')) / 100
-
         bmi_value = weight / (height * height)
         return jsonify({"bmi": round(bmi_value, 2)})
     except:
         return jsonify({"error": "Invalid input"})
 
 # ------------------ WEIGHT TRACKING ------------------
-
 @app.route('/add_weight', methods=['POST'])
 def add_weight():
     if "user" not in session:
         return jsonify({"error": "login required"})
 
-    data = request.get_json(silent=True) or request.form
-
+    data = request.form or request.get_json(silent=True)
     try:
         weight_val = float(data.get('weight'))
         new_weight = Weight(user_id=session["user"], weight=weight_val)
-
         db.session.add(new_weight)
         db.session.commit()
-
         return jsonify({"status": "saved"})
     except:
         return jsonify({"error": "Invalid weight"})
@@ -134,19 +128,15 @@ def add_weight():
 def get_weights():
     if "user" not in session:
         return jsonify([])
-
     weights = Weight.query.filter_by(user_id=session["user"]).all()
     return jsonify([w.weight for w in weights])
 
 # ------------------ HEALTH SCORE ------------------
-
 @app.route('/health_score', methods=['POST'])
 def health_score():
-    data = request.get_json(silent=True) or request.form
-
+    data = request.form or request.get_json(silent=True)
     try:
         bmi = float(data.get('bmi'))
-
         if bmi < 18.5:
             score = 60
         elif bmi < 25:
@@ -155,35 +145,29 @@ def health_score():
             score = 75
         else:
             score = 50
-
         return jsonify({"score": score})
     except:
         return jsonify({"error": "Invalid BMI"})
 
 # ------------------ DIET ------------------
-
 @app.route('/diet', methods=['POST'])
 def diet():
-    data = request.get_json(silent=True) or request.form
-
+    data = request.form or request.get_json(silent=True)
     try:
         bmi = float(data.get('bmi'))
-
         if bmi < 18.5:
             diet_plan = "High calorie diet with protein and carbs"
         elif bmi < 25:
             diet_plan = "Balanced diet with fruits, vegetables and protein"
         else:
             diet_plan = "Low calorie diet, reduce sugar and fats"
-
         return jsonify({"diet": diet_plan})
     except:
         return jsonify({"error": "Invalid BMI"})
 
 # ------------------ INIT ------------------
-with app.app_context():
-    db.create_all()
-
 if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()  # creates tables if not exists
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
