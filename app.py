@@ -12,13 +12,13 @@ app.secret_key = os.environ.get("SECRET_KEY", "superstrongsecretkey123!")
 
 database_url = os.environ.get("DATABASE_URL")
 
-if not database_url:
-    raise ValueError("DATABASE_URL is not set in Render!")
+if database_url:
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-if database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql://", 1)
-
-database_url = database_url.replace("postgresql://", "postgresql+psycopg://")
+    database_url = database_url.replace("postgresql://", "postgresql+psycopg://")
+else:
+    database_url = "sqlite:///local.db"
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -144,6 +144,12 @@ def get_weights():
     
     weights = Weight.query.filter_by(user_id=session["user"]).all()
     return jsonify([w.weight for w in weights])
+
+# ------------------ DATABASE INIT ROUTE ------------------
+@app.route("/init_db")
+def init_db():
+    db.create_all()
+    return "Tables created successfully!"
 
 # ------------------ INIT ------------------
 if __name__ == "__main__":
