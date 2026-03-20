@@ -8,14 +8,20 @@ app = Flask(__name__)
 # ------------------ CONFIG ------------------
 app.secret_key = os.environ.get("SECRET_KEY", "superstrongsecretkey123!")
 
-# PostgreSQL configuration from Render database_url = os.environ.get("DATABASE_URL")
+# ------------------ DATABASE CONFIG (FIXED) ------------------
+database_url = os.environ.get("DATABASE_URL")
 
-if database_url and database_url.startswith("postgres://"):
+if not database_url:
+    raise ValueError("DATABASE_URL is not set in Render!")
+
+# Fix for Render postgres URL
+if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Session fix for Render
+# ------------------ SESSION FIX ------------------
 if os.environ.get("RENDER"):
     app.config.update(
         SESSION_COOKIE_SECURE=True,
@@ -29,7 +35,7 @@ else:
 db = SQLAlchemy(app)
 
 # ------------------ MODELS ------------------
-class AppUser(db.Model):  # avoid reserved 'user'
+class AppUser(db.Model):
     __tablename__ = "app_user"
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
@@ -44,7 +50,6 @@ class Weight(db.Model):
 @app.route('/')
 def home():
     if "user" in session:
-        # fetch weights safely
         weights = Weight.query.filter_by(user_id=session["user"]).all()
         weights_list = [w.weight for w in weights]
         return render_template("dashboard.html", weights=weights_list)
@@ -77,7 +82,7 @@ def register():
     db.session.add(user)
     db.session.commit()
 
-    session["user"] = user.id  # log in immediately
+    session["user"] = user.id
     return jsonify({"status": "success"})
 
 @app.route('/login', methods=['POST'])
@@ -137,51 +142,9 @@ def get_weights():
     weights = Weight.query.filter_by(user_id=session["user"]).all()
     return jsonify([w.weight for w in weights])
 
-# ------------------ HEALTH SCORE ------------------
-@app.route('/health_score', methods=['POST'])
-def health_score():
-    data = request.get_json(silent=True) or request.form
-    try:
-        bmi_val = float(data.get('bmi'))
-        if bmi_val < 18.5:
-            score = 60
-        elif bmi_val < 25:
-            score = 90
-        elif bmi_val < 30:
-            score = 75
-        else:
-            score = 50
-        return jsonify({"score": score})
-    except:
-        return jsonify({"error": "Invalid BMI"})
-
-# ------------------ DIET ------------------
-@app.route('/diet', methods=['POST'])
-def diet():
-    data = request.get_json(silent=True) or request.form
-    try:
-        bmi_val = float(data.get('bmi'))
-        if bmi_val < 18.5:
-            diet_plan = """High-calorie diet with protein and carbs: eggs, milk, nuts, rice, chicken."""
-        elif bmi_val < 25:
-            diet_plan = """Balanced diet: fruits, vegetables, lean protein, whole grains, moderate fats."""
-        elif bmi_val < 30:
-            diet_plan = """Low-calorie diet: reduce sugar & fats, more vegetables, lean protein, avoid fried foods."""
-        else:
-            diet_plan = """Weight-loss diet: strict calorie control, lots of veggies, avoid sugar, increase water intake."""
-        return jsonify({"diet": diet_plan})
-    except:
-        return jsonify({"error": "Invalid BMI"})
-
-# ------------------ DATABASE INIT ------------------
-@app.route("/init_db")
-def init_db():
-    db.create_all()
-    return "Tables created successfully!"
-
 # ------------------ INIT ------------------
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()  # ensures tables exist before first request
-    port = int(os.environ.get("PORT", 10000))
+        db.create_all()
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
