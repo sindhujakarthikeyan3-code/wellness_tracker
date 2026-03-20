@@ -9,19 +9,23 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "superstrongsecretkey123!")
 
 # ------------------ DATABASE CONFIG (FIXED) ------------------
+
 database_url = os.environ.get("DATABASE_URL")
 
 if not database_url:
     raise ValueError("DATABASE_URL is not set in Render!")
 
 # Fix for Render postgres URL
+
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+
 # ------------------ SESSION FIX ------------------
+
 if os.environ.get("RENDER"):
     app.config.update(
         SESSION_COOKIE_SECURE=True,
