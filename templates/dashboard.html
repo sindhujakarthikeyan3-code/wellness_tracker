@@ -1,74 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
+
 <body>
 
-<h1>Dashboard</h1>
-
+<h2>Dashboard</h2>
 <a href="/logout">Logout</a>
 
-<h2>Add Weight</h2>
+<h3>Add Weight</h3>
 <form id="weightForm">
-    <input type="number" name="weight" placeholder="Enter weight" required>
-    <button type="submit">Add</button>
+    <input type="number" name="weight" placeholder="Weight" required>
+    <button>Add</button>
 </form>
 
-<h3>Your Weights:</h3>
-<ul id="weightList"></ul>
-
-<h2>BMI Calculator</h2>
-<form id="bmiForm">
-    Weight: <input type="number" name="weight" required><br>
-    Height (cm): <input type="number" name="height" required><br>
-    <button type="submit">Calculate BMI</button>
-</form>
-
-<p id="bmiResult"></p>
+<canvas id="chart"></canvas>
 
 <script>
-// Load weights
-async function loadWeights() {
-    const res = await fetch("/get_weights");
-    const data = await res.json();
-    const list = document.getElementById("weightList");
-    list.innerHTML = "";
-    data.forEach(w => {
-        const li = document.createElement("li");
-        li.innerText = w;
-        list.appendChild(li);
-    });
-}
-
-loadWeights();
-
-// Add weight
-document.getElementById("weightForm").addEventListener("submit", async function(e){
+document.getElementById("weightForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const formData = new FormData(this);
+
+    const formData = new URLSearchParams(new FormData(e.target));
 
     await fetch("/add_weight", {
         method: "POST",
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
         body: formData
     });
 
-    loadWeights();
+    loadChart();
 });
 
-// BMI
-document.getElementById("bmiForm").addEventListener("submit", async function(e){
-    e.preventDefault();
-    const formData = new FormData(this);
-
-    const res = await fetch("/bmi", {
-        method: "POST",
-        body: formData
-    });
-
+async function loadChart() {
+    const res = await fetch("/get_weights");
     const data = await res.json();
-    document.getElementById("bmiResult").innerText = "BMI: " + data.bmi;
-});
+
+    const ctx = document.getElementById("chart");
+
+    new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: data.map((_, i) => "Entry " + (i+1)),
+            datasets: [{
+                label: "Weight",
+                data: data
+            }]
+        }
+    });
+}
+
+loadChart();
 </script>
 
 </body>
