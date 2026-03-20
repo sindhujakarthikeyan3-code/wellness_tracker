@@ -6,17 +6,16 @@ import os
 app = Flask(__name__)
 
 # ------------------ CONFIG ------------------
-# Secret key for sessions
-app.secret_key = os.environ.get("SECRET_KEY", "fallbacksecretkey")
+app.secret_key = os.environ.get("SECRET_KEY", "superstrongsecretkey123!")
 
-# PostgreSQL configuration from Render secret
+# PostgreSQL configuration from Render Secret
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
     "DATABASE_URL",
-    "postgresql://localhost:5432/wellness_db_ppcr"
+    "postgresql://postgres:password@localhost:5432/wellness_db"
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Session secure settings for Render
+# Session fix for Render
 if os.environ.get("RENDER"):
     app.config.update(
         SESSION_COOKIE_SECURE=True,
@@ -30,7 +29,7 @@ else:
 db = SQLAlchemy(app)
 
 # ------------------ MODELS ------------------
-class AppUser(db.Model):  # Avoid 'user' reserved word
+class AppUser(db.Model):  # avoid reserved 'user'
     __tablename__ = "app_user"
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
@@ -45,8 +44,10 @@ class Weight(db.Model):
 @app.route('/')
 def home():
     if "user" in session:
+        # fetch weights safely
         weights = Weight.query.filter_by(user_id=session["user"]).all()
-        return render_template("dashboard.html", weights=[w.weight for w in weights])
+        weights_list = [w.weight for w in weights]
+        return render_template("dashboard.html", weights=weights_list)
     return redirect("/login")
 
 @app.route('/login')
@@ -76,7 +77,7 @@ def register():
     db.session.add(user)
     db.session.commit()
 
-    session["user"] = user.id  # log in after registration
+    session["user"] = user.id  # log in immediately
     return jsonify({"status": "success"})
 
 @app.route('/login', methods=['POST'])
@@ -92,7 +93,7 @@ def login():
     if user and check_password_hash(user.password, password):
         session["user"] = user.id
         return jsonify({"status": "success"})
-
+    
     return jsonify({"status": "error", "message": "Invalid credentials"})
 
 @app.route('/logout')
@@ -117,7 +118,7 @@ def bmi():
 def add_weight():
     if "user" not in session:
         return jsonify({"error": "login required"})
-
+    
     data = request.get_json(silent=True) or request.form
     try:
         weight_val = float(data.get('weight'))
@@ -132,6 +133,7 @@ def add_weight():
 def get_weights():
     if "user" not in session:
         return jsonify([])
+    
     weights = Weight.query.filter_by(user_id=session["user"]).all()
     return jsonify([w.weight for w in weights])
 
@@ -153,40 +155,33 @@ def health_score():
     except:
         return jsonify({"error": "Invalid BMI"})
 
-# ------------------ DIET RECOMMENDATION ------------------
+# ------------------ DIET ------------------
 @app.route('/diet', methods=['POST'])
 def diet():
     data = request.get_json(silent=True) or request.form
     try:
         bmi_val = float(data.get('bmi'))
         if bmi_val < 18.5:
-            diet_plan = (
-                "High calorie diet with protein, carbs, and healthy fats. "
-                "Include nuts, eggs, dairy, lean meats, and whole grains."
-            )
+            diet_plan = """High-calorie diet with protein and carbs: eggs, milk, nuts, rice, chicken."""
         elif bmi_val < 25:
-            diet_plan = (
-                "Balanced diet with fruits, vegetables, lean protein, "
-                "whole grains, and healthy fats. Hydrate well."
-            )
+            diet_plan = """Balanced diet: fruits, vegetables, lean protein, whole grains, moderate fats."""
         elif bmi_val < 30:
-            diet_plan = (
-                "Low calorie diet. Reduce sugar and refined carbs, "
-                "eat more vegetables, lean protein, and moderate carbs."
-            )
+            diet_plan = """Low-calorie diet: reduce sugar & fats, more vegetables, lean protein, avoid fried foods."""
         else:
-            diet_plan = (
-                "Weight loss diet. Strictly reduce sugars, fried foods, "
-                "and processed items. Focus on vegetables, lean proteins, "
-                "and drink plenty of water."
-            )
+            diet_plan = """Weight-loss diet: strict calorie control, lots of veggies, avoid sugar, increase water intake."""
         return jsonify({"diet": diet_plan})
     except:
         return jsonify({"error": "Invalid BMI"})
 
+# ------------------ DATABASE INIT ------------------
+@app.route("/init_db")
+def init_db():
+    db.create_all()
+    return "Tables created successfully!"
+
 # ------------------ INIT ------------------
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()  # create tables in PostgreSQL if not exist
+        db.create_all()  # ensures tables exist before first request
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
