@@ -8,18 +8,18 @@ app = Flask(__name__)
 # ------------------ CONFIG ------------------
 app.secret_key = os.environ.get("SECRET_KEY", "secret123")
 
+# ------------------ DATABASE ------------------
 database_url = os.environ.get("DATABASE_URL")
 
 if not database_url:
     raise ValueError("DATABASE_URL not set!")
 
+# Fix postgres:// → postgresql://
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-database_url = database_url.replace("postgresql://", "postgresql+psycopg://")
-
+# ❌ DO NOT add +psycopg
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -53,8 +53,10 @@ def register_page():
 # ------------------ AUTH ------------------
 @app.route('/register', methods=['POST'])
 def register():
-    email = request.form.get('email')
-    password = request.form.get('password')
+    data = request.get_json(silent=True) or request.form
+
+    email = data.get('email')
+    password = data.get('password')
 
     if AppUser.query.filter_by(email=email).first():
         return jsonify({"status": "error", "message": "User exists"})
@@ -70,8 +72,10 @@ def register():
 
 @app.route('/login', methods=['POST'])
 def login():
-    email = request.form.get('email')
-    password = request.form.get('password')
+    data = request.get_json(silent=True) or request.form
+
+    email = data.get('email')
+    password = data.get('password')
 
     user = AppUser.query.filter_by(email=email).first()
 
@@ -92,7 +96,9 @@ def add_weight():
     if "user" not in session:
         return jsonify({"error": "login required"})
 
-    weight = float(request.form.get('weight'))
+    data = request.get_json(silent=True) or request.form
+
+    weight = float(data.get('weight'))
     new = Weight(user_id=session["user"], weight=weight)
 
     db.session.add(new)
@@ -117,4 +123,5 @@ def init_db():
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)

@@ -28,11 +28,16 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
 
     const formData = new URLSearchParams(new FormData(e.target));
 
-    const res = await fetch("/register", {
-        method: "POST",
-        headers: {"Content-Type": "application/x-www-form-urlencoded"},
-        body: formData
-    });
+const res = await fetch("/register", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+        email: formData.get("email"),
+        password: formData.get("password")
+    })
+});
 
     const data = await res.json();
 
