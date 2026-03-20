@@ -8,12 +8,12 @@ app = Flask(__name__)
 # ------------------ CONFIG ------------------
 app.secret_key = os.environ.get("SECRET_KEY", "superstrongsecretkey123!")
 
-# PostgreSQL configuration from Render Secret
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
-    "DATABASE_URL",
-    "postgresql://postgres:password@localhost:5432/wellness_db"
-)
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# PostgreSQL configuration from Render database_url = os.environ.get("DATABASE_URL")
+
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 
 # Session fix for Render
 if os.environ.get("RENDER"):
