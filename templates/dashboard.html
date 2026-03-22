@@ -3,94 +3,83 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wellness Tracker Dashboard</title>
+<title>Wellness Dashboard</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
 body {
     margin: 0;
-    font-family: 'Roboto', sans-serif;
-    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-    color: #fff;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #1e1e2f, #2c2c54);
+    color: white;
 }
 
 .container {
+    padding: 20px;
     max-width: 1200px;
     margin: auto;
-    padding: 20px;
 }
 
 h1 {
     text-align: center;
     margin-bottom: 30px;
-    font-size: 2.5em;
-    color: #00e0ff;
 }
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 25px;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 30px;
 }
 
-/* Card styling */
 .card {
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(10px);
-    border-radius: 15px;
+    background: rgba(255,255,255,0.1);
     padding: 25px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-    transition: transform 0.3s ease;
-}
-.card:hover {
-    transform: translateY(-5px);
+    border-radius: 20px;
+    backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
 }
 
 .card h2 {
-    margin-top: 0;
+    margin-bottom: 15px;
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 1.5em;
+}
+
+.card img {
+    width: 80px;
+    height: auto;
+    margin-bottom: 15px;
 }
 
 input, button {
     padding: 12px;
-    border-radius: 8px;
+    border-radius: 10px;
     border: none;
-    margin-top: 10px;
-    width: calc(100% - 24px);
-    box-sizing: border-box;
+    margin: 5px 0;
+    width: 80%;
 }
 
 button {
     background: #00c9a7;
-    color: #fff;
-    font-weight: 500;
+    color: white;
     cursor: pointer;
-    transition: background 0.3s ease;
+    font-weight: bold;
+    width: 50%;
 }
+
 button:hover {
     background: #00a389;
 }
 
-/* Weight Chart styling */
-#weightChart {
-    margin-top: 20px;
+canvas {
+    margin-top: 15px;
+    width: 100% !important;
     height: 300px !important;
-}
-
-/* Section images */
-.section-img {
-    width: 40px;
-    height: 40px;
-}
-p {
-    margin-top: 10px;
-    line-height: 1.6;
-    font-size: 0.95em;
 }
 </style>
 </head>
@@ -98,45 +87,49 @@ p {
 <body>
 
 <div class="container">
-    <h1>💪 Wellness Tracker Dashboard</h1>
+<h1>💪 Wellness Tracker Dashboard</h1>
 
-    <div class="grid">
+<div class="grid">
 
-        <!-- Weight Tracker -->
-        <div class="card">
-            <h2><img src="https://img.icons8.com/ios-filled/50/00c9a7/weight.png" class="section-img"/> Weight Tracker</h2>
-            <input type="number" id="weight" placeholder="Enter weight (kg)">
-            <button onclick="addWeight()">Add Weight</button>
-            <canvas id="weightChart"></canvas>
-        </div>
+<!-- Weight Tracker -->
+<div class="card">
+<h2>📊 Weight Tracker</h2>
+<img src="https://img.icons8.com/color/96/000000/weight-scale.png" alt="Weight Scale">
+<input type="number" id="weight" placeholder="Enter weight (kg)">
+<button onclick="addWeight()">Add Weight</button>
+<canvas id="weightChart"></canvas>
+</div>
 
-        <!-- Calorie Prediction -->
-        <div class="card">
-            <h2><img src="https://img.icons8.com/ios-filled/50/00c9a7/fire-element.png" class="section-img"/> Calorie Prediction</h2>
-            <input type="number" id="age" placeholder="Age">
-            <input type="number" id="height" placeholder="Height (cm)">
-            <input type="number" id="weightCal" placeholder="Weight (kg)">
-            <button onclick="calculateCalories()">Calculate</button>
-            <p id="calorieResult"></p>
-        </div>
+<!-- Calorie Prediction -->
+<div class="card">
+<h2>🔥 Calorie Prediction</h2>
+<img src="https://img.icons8.com/color/96/000000/fire-element.png" alt="Calories">
+<input type="number" id="age" placeholder="Age">
+<input type="number" id="height" placeholder="Height (cm)">
+<input type="number" id="weightCal" placeholder="Weight (kg)">
+<button onclick="calculateCalories()">Calculate</button>
+<p id="calorieResult"></p>
+</div>
 
-        <!-- Diet Recommendation -->
-        <div class="card">
-            <h2><img src="https://img.icons8.com/ios-filled/50/00c9a7/salad.png" class="section-img"/> Diet Recommendation</h2>
-            <p id="dietPlan">Enter details above to get your diet plan</p>
-        </div>
+<!-- Diet Recommendation -->
+<div class="card">
+<h2>🥗 Diet Recommendation</h2>
+<img src="https://img.icons8.com/color/96/000000/salad.png" alt="Diet">
+<p id="dietPlan">Enter details to get diet plan</p>
+</div>
 
-        <!-- BMI & Health Risk -->
-        <div class="card">
-            <h2><img src="https://img.icons8.com/ios-filled/50/00c9a7/heartbeat.png" class="section-img"/> BMI & Health Risk</h2>
-            <input type="number" id="weightBMI" placeholder="Weight (kg)">
-            <input type="number" id="heightBMI" placeholder="Height (m)">
-            <button onclick="calculateBMI()">Calculate BMI & Risk</button>
-            <p id="bmiResult">BMI: -</p>
-            <p id="riskResult">Health Risk: -</p>
-        </div>
+<!-- BMI & Health Risk -->
+<div class="card">
+<h2>🩺 BMI & Health Risk</h2>
+<img src="https://img.icons8.com/color/96/000000/heart-health.png" alt="Health">
+<input type="number" id="weightBMI" placeholder="Weight (kg)">
+<input type="number" id="heightBMI" placeholder="Height (m)">
+<button onclick="calculateBMI()">Calculate BMI & Risk</button>
+<p id="bmiResult">BMI: -</p>
+<p id="riskResult">Health Risk: -</p>
+</div>
 
-    </div>
+</div>
 </div>
 
 <script>
@@ -145,6 +138,7 @@ let chart;
 // Add weight
 function addWeight() {
     let weight = document.getElementById("weight").value;
+
     fetch("/add_weight", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
@@ -152,7 +146,7 @@ function addWeight() {
     }).then(() => loadWeights());
 }
 
-// Load weight chart
+// Load weights
 function loadWeights() {
     fetch("/get_weights")
     .then(res => res.json())
@@ -163,27 +157,27 @@ function loadWeights() {
         if(chart) chart.destroy();
 
         chart = new Chart(document.getElementById("weightChart"), {
-            type: 'line',
+            type: "line",
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Weight Progress (kg)',
+                    label: "Weight Progress (kg)",
                     data: weights,
                     borderColor: '#00c9a7',
                     backgroundColor: 'rgba(0,201,167,0.2)',
                     borderWidth: 3,
-                    tension: 0.4,
+                    tension: 0.3,
                     fill: true
                 }]
             },
             options: {
                 responsive: true,
                 plugins: {
-                    legend: {display: true, labels: {color: '#fff'}},
+                    legend: { display: true },
+                    tooltip: { mode: 'index', intersect: false }
                 },
                 scales: {
-                    x: {ticks: {color: '#fff'}},
-                    y: {ticks: {color: '#fff'}}
+                    y: { beginAtZero: false }
                 }
             }
         });
@@ -197,16 +191,19 @@ function calculateCalories() {
     let weight = document.getElementById("weightCal").value;
 
     let calories = 10*weight + 6.25*height - 5*age + 5;
-    document.getElementById("calorieResult").innerText = "Daily Calories Needed: " + Math.round(calories);
+
+    document.getElementById("calorieResult").innerText =
+        "Daily Calories Needed: " + Math.round(calories);
 
     let diet = "";
     if(calories < 1800){
-        diet = `🥗 Weight Loss Plan:\n• Breakfast: Oats + Apple 🍎\n• Lunch: Brown rice + Grilled chicken / Paneer 🍗\n• Dinner: Salad + Soup 🥣\n• Snacks: Nuts + Green tea`;
+        diet = "🥗 Weight Loss Plan: Breakfast, Lunch, Dinner, Snacks";
     } else if(calories < 2500){
-        diet = `⚖️ Maintenance Diet:\n• Breakfast: Idli / Eggs + Milk 🥚\n• Lunch: Rice + Dal + Vegetables 🍛\n• Dinner: Roti + Curry\n• Snacks: Fruits 🍌`;
+        diet = "⚖️ Maintenance Diet: Breakfast, Lunch, Dinner, Snacks";
     } else {
-        diet = `💪 Weight Gain Plan:\n• Breakfast: Peanut butter bread + Banana 🍌\n• Lunch: Rice + Chicken / Paneer 🍗\n• Dinner: Chapati + Curry\n• Snacks: Dry fruits + Milk 🥛`;
+        diet = "💪 Weight Gain Plan: Breakfast, Lunch, Dinner, Snacks";
     }
+
     document.getElementById("dietPlan").innerText = diet;
 }
 
@@ -215,7 +212,10 @@ function calculateBMI() {
     let weight = parseFloat(document.getElementById("weightBMI").value);
     let height = parseFloat(document.getElementById("heightBMI").value);
 
-    if (!weight || !height) { alert("Please enter both weight and height"); return; }
+    if (!weight || !height) {
+        alert("Please enter both weight and height");
+        return;
+    }
 
     fetch("/calculate_bmi", {
         method: "POST",
@@ -232,14 +232,17 @@ function calculateBMI() {
         });
     })
     .then(res => res.json())
-    .then(riskData => { document.getElementById("riskResult").innerText = "Health Risk: " + riskData.risk; });
+    .then(riskData => {
+        document.getElementById("riskResult").innerText = "Health Risk: " + riskData.risk;
+    });
 
     document.getElementById("weightBMI").value = '';
     document.getElementById("heightBMI").value = '';
 }
 
-// Load chart on start
+// Load weights on page load
 loadWeights();
 </script>
+
 </body>
 </html>
