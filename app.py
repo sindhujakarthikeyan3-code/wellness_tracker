@@ -98,7 +98,12 @@ def add_weight():
 
     data = request.get_json(silent=True) or request.form
 
-    weight = float(data.get('weight'))
+    weight_val = data.get('weight')
+
+if not weight_val:
+    return jsonify({"error": "No weight provided"})
+
+weight = float(weight_val)
     new = Weight(user_id=session["user"], weight=weight)
 
     db.session.add(new)
