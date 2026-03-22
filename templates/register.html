@@ -67,7 +67,7 @@ a {
 <div class="container">
     <h2>Create Account</h2>
 
-    <form method="POST">
+    <form method="POST" action="/register">
         <input type="email" name="email" placeholder="Email Address" required>
         <input type="password" name="password" placeholder="Create Password" required>
         <button type="submit">Register</button>
@@ -75,6 +75,25 @@ a {
 
     <a href="/login">Already have an account? Login</a>
 </div>
+<script>
+document.querySelector("form").addEventListener("submit", async function(e) {
+    e.preventDefault();
 
+    let formData = new FormData(this);
+
+    let res = await fetch("/register", {
+        method: "POST",
+        body: formData
+    });
+
+    let data = await res.json();
+
+    if (data.status === "success") {
+        window.location.href = "/dashboard";   // ✅ redirect
+    } else {
+        alert(data.message);
+    }
+});
+</script>
 </body>
 </html>

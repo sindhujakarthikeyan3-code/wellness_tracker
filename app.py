@@ -78,21 +78,22 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        data = request.form
+    if request.method == 'GET':
+        return render_template("login.html")
 
-        email = data.get('email')
-        password = data.get('password')
+    data = request.get_json(silent=True) or request.form
 
-        user = AppUser.query.filter_by(email=email).first()
+    email = data.get('email')
+    password = data.get('password')
 
-        if user and check_password_hash(user.password, password):
-            session["user"] = user.id
-            return redirect('/dashboard')
+    user = AppUser.query.filter_by(email=email).first()
 
-        return render_template('login.html', error="Invalid login")
+    if user and check_password_hash(user.password, password):
+        session["user"] = user.id
+        return jsonify({"status": "success"})
 
-    return render_template('login.html')
+    return jsonify({"status": "error"})
+
 @app.route('/logout')
 def logout():
     session.pop("user", None)
