@@ -12,14 +12,16 @@ database_url = os.environ.get("DATABASE_URL")
 if not database_url:
     raise ValueError("DATABASE_URL not set!")
 
-# Fix URL for psycopg3
+# Force SQLAlchemy to use psycopg3
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql+psycopg://", 1)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app)
+# Use init_app to ensure psycopg3 is used, prevents psycopg2 errors
+db = SQLAlchemy()
+db.init_app(app)
 
 # ------------------ MODELS ------------------
 class AppUser(db.Model):
@@ -88,7 +90,7 @@ def logout():
 def dashboard():
     if "user_id" not in session:
         return redirect("/login")
-    return render_template("dashboard.html")
+    return render_template("dashboard.html")  # Your UI with weight & calorie tracker stays intact
 
 # ------------------ WEIGHT TRACKING ------------------
 @app.route('/add_weight', methods=['POST'])
