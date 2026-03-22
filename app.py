@@ -12,7 +12,7 @@ database_url = os.environ.get("DATABASE_URL")
 if not database_url:
     raise ValueError("DATABASE_URL not set!")
 
-# Fix URL for SQLAlchemy + psycopg 3
+# Fix URL for psycopg3
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql+psycopg://", 1)
 
