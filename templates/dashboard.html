@@ -5,30 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wellness Tracker Dashboard</title>
 
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<!-- Google Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
 body {
     margin: 0;
-    font-family: 'Poppins', sans-serif;
-    background: #f5f7fa;
-    color: #333;
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    color: #fff;
 }
 
 .container {
     max-width: 1200px;
-    margin: 20px auto;
-    padding: 0 20px;
+    margin: auto;
+    padding: 20px;
 }
 
 h1 {
     text-align: center;
     margin-bottom: 30px;
-    color: #1e1e2f;
+    font-size: 2.5em;
+    color: #00e0ff;
 }
 
 .grid {
@@ -37,75 +35,68 @@ h1 {
     gap: 25px;
 }
 
-/* Professional card style */
+/* Card styling */
 .card {
-    background: rgba(255,255,255,0.95);
-    border-radius: 20px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
     padding: 25px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    transition: transform 0.2s ease;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    transition: transform 0.3s ease;
 }
-
 .card:hover {
     transform: translateY(-5px);
 }
 
 .card h2 {
-    margin-bottom: 15px;
-    font-weight: 600;
-    color: #1e1e2f;
+    margin-top: 0;
     display: flex;
     align-items: center;
-}
-
-.card h2 img {
-    height: 30px;
-    margin-right: 10px;
+    gap: 10px;
+    font-size: 1.5em;
 }
 
 input, button {
     padding: 12px;
-    border-radius: 10px;
-    border: 1px solid #ccc;
+    border-radius: 8px;
+    border: none;
     margin-top: 10px;
-    width: 90%;
-    font-size: 16px;
+    width: calc(100% - 24px);
+    box-sizing: border-box;
 }
 
 button {
-    background: linear-gradient(90deg, #00c9a7, #00a389);
-    color: white;
-    border: none;
+    background: #00c9a7;
+    color: #fff;
+    font-weight: 500;
     cursor: pointer;
-    font-weight: 600;
     transition: background 0.3s ease;
 }
-
 button:hover {
-    background: linear-gradient(90deg, #00a389, #008c7c);
+    background: #00a389;
 }
 
-canvas {
-    margin-top: 15px;
-    border-radius: 15px;
-    background: #fafafa;
-    padding: 15px;
+/* Weight Chart styling */
+#weightChart {
+    margin-top: 20px;
+    height: 300px !important;
 }
 
-/* Section content */
+/* Section images */
+.section-img {
+    width: 40px;
+    height: 40px;
+}
 p {
     margin-top: 10px;
     line-height: 1.6;
-    text-align: left;
+    font-size: 0.95em;
 }
-
 </style>
 </head>
 
 <body>
+
 <div class="container">
     <h1>💪 Wellness Tracker Dashboard</h1>
 
@@ -113,31 +104,31 @@ p {
 
         <!-- Weight Tracker -->
         <div class="card">
-            <h2><img src="https://img.icons8.com/ios-filled/50/000000/weight.png"/>Weight Tracker</h2>
+            <h2><img src="https://img.icons8.com/ios-filled/50/00c9a7/weight.png" class="section-img"/> Weight Tracker</h2>
             <input type="number" id="weight" placeholder="Enter weight (kg)">
             <button onclick="addWeight()">Add Weight</button>
-            <canvas id="weightChart" height="250"></canvas>
+            <canvas id="weightChart"></canvas>
         </div>
 
         <!-- Calorie Prediction -->
         <div class="card">
-            <h2><img src="https://img.icons8.com/ios-filled/50/000000/fire-element.png"/>Calorie Prediction</h2>
+            <h2><img src="https://img.icons8.com/ios-filled/50/00c9a7/fire-element.png" class="section-img"/> Calorie Prediction</h2>
             <input type="number" id="age" placeholder="Age">
             <input type="number" id="height" placeholder="Height (cm)">
             <input type="number" id="weightCal" placeholder="Weight (kg)">
             <button onclick="calculateCalories()">Calculate</button>
-            <p id="calorieResult">Daily Calories Needed: -</p>
+            <p id="calorieResult"></p>
         </div>
 
         <!-- Diet Recommendation -->
         <div class="card">
-            <h2><img src="https://img.icons8.com/ios-filled/50/000000/salad.png"/>Diet Recommendation</h2>
-            <p id="dietPlan">Enter details to get diet plan</p>
+            <h2><img src="https://img.icons8.com/ios-filled/50/00c9a7/salad.png" class="section-img"/> Diet Recommendation</h2>
+            <p id="dietPlan">Enter details above to get your diet plan</p>
         </div>
 
         <!-- BMI & Health Risk -->
         <div class="card">
-            <h2><img src="https://img.icons8.com/ios-filled/50/000000/heart-health.png"/>BMI & Health Risk</h2>
+            <h2><img src="https://img.icons8.com/ios-filled/50/00c9a7/heartbeat.png" class="section-img"/> BMI & Health Risk</h2>
             <input type="number" id="weightBMI" placeholder="Weight (kg)">
             <input type="number" id="heightBMI" placeholder="Height (m)">
             <button onclick="calculateBMI()">Calculate BMI & Risk</button>
@@ -161,7 +152,7 @@ function addWeight() {
     }).then(() => loadWeights());
 }
 
-// Load weights
+// Load weight chart
 function loadWeights() {
     fetch("/get_weights")
     .then(res => res.json())
@@ -172,25 +163,27 @@ function loadWeights() {
         if(chart) chart.destroy();
 
         chart = new Chart(document.getElementById("weightChart"), {
-            type: "line",
+            type: 'line',
             data: {
                 labels: labels,
                 datasets: [{
-                    label: "Weight Progress (kg)",
+                    label: 'Weight Progress (kg)',
                     data: weights,
+                    borderColor: '#00c9a7',
+                    backgroundColor: 'rgba(0,201,167,0.2)',
                     borderWidth: 3,
-                    borderColor: "#00c9a7",
-                    backgroundColor: "rgba(0,201,167,0.1)",
                     tension: 0.4,
-                    fill: true,
-                    pointRadius: 6
+                    fill: true
                 }]
             },
             options: {
                 responsive: true,
-                plugins: { legend: { display: true } },
+                plugins: {
+                    legend: {display: true, labels: {color: '#fff'}},
+                },
                 scales: {
-                    y: { beginAtZero: false }
+                    x: {ticks: {color: '#fff'}},
+                    y: {ticks: {color: '#fff'}}
                 }
             }
         });
@@ -204,19 +197,16 @@ function calculateCalories() {
     let weight = document.getElementById("weightCal").value;
 
     let calories = 10*weight + 6.25*height - 5*age + 5;
-
-    document.getElementById("calorieResult").innerText =
-        "Daily Calories Needed: " + Math.round(calories);
+    document.getElementById("calorieResult").innerText = "Daily Calories Needed: " + Math.round(calories);
 
     let diet = "";
     if(calories < 1800){
-        diet = `🥗 Weight Loss Plan:\n• Breakfast: Oats + Apple 🍎\n• Lunch: Brown rice + Chicken/Paneer 🍗\n• Dinner: Salad + Soup 🥣\n• Snacks: Nuts + Green tea`;
+        diet = `🥗 Weight Loss Plan:\n• Breakfast: Oats + Apple 🍎\n• Lunch: Brown rice + Grilled chicken / Paneer 🍗\n• Dinner: Salad + Soup 🥣\n• Snacks: Nuts + Green tea`;
     } else if(calories < 2500){
         diet = `⚖️ Maintenance Diet:\n• Breakfast: Idli / Eggs + Milk 🥚\n• Lunch: Rice + Dal + Vegetables 🍛\n• Dinner: Roti + Curry\n• Snacks: Fruits 🍌`;
     } else {
         diet = `💪 Weight Gain Plan:\n• Breakfast: Peanut butter bread + Banana 🍌\n• Lunch: Rice + Chicken / Paneer 🍗\n• Dinner: Chapati + Curry\n• Snacks: Dry fruits + Milk 🥛`;
     }
-
     document.getElementById("dietPlan").innerText = diet;
 }
 
@@ -225,10 +215,7 @@ function calculateBMI() {
     let weight = parseFloat(document.getElementById("weightBMI").value);
     let height = parseFloat(document.getElementById("heightBMI").value);
 
-    if (!weight || !height) {
-        alert("Please enter both weight and height");
-        return;
-    }
+    if (!weight || !height) { alert("Please enter both weight and height"); return; }
 
     fetch("/calculate_bmi", {
         method: "POST",
@@ -238,7 +225,6 @@ function calculateBMI() {
     .then(res => res.json())
     .then(data => {
         document.getElementById("bmiResult").innerText = "BMI: " + data.bmi;
-
         return fetch("/predict_risk", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
@@ -246,17 +232,14 @@ function calculateBMI() {
         });
     })
     .then(res => res.json())
-    .then(riskData => {
-        document.getElementById("riskResult").innerText = "Health Risk: " + riskData.risk;
-    });
+    .then(riskData => { document.getElementById("riskResult").innerText = "Health Risk: " + riskData.risk; });
 
     document.getElementById("weightBMI").value = '';
     document.getElementById("heightBMI").value = '';
 }
 
-// Load weights on page load
+// Load chart on start
 loadWeights();
 </script>
-
 </body>
 </html>
