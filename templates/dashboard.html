@@ -10,8 +10,8 @@
 <style>
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(to right, #1d2671, #c33764);
+    font-family: Arial;
+    background: linear-gradient(135deg, #1e1e2f, #2c2c54);
     color: white;
 }
 
@@ -24,54 +24,39 @@ h1 {
     margin-bottom: 20px;
 }
 
-/* Cards */
 .card {
     background: rgba(255,255,255,0.1);
     padding: 20px;
-    margin: 15px 0;
     border-radius: 15px;
+    margin-bottom: 20px;
     backdrop-filter: blur(10px);
 }
 
-/* Inputs */
 input, button {
     padding: 10px;
-    border-radius: 8px;
+    border-radius: 10px;
     border: none;
-    margin: 5px 0;
-}
-
-input {
-    width: 70%;
+    margin-top: 10px;
 }
 
 button {
-    background: #ff7eb3;
+    background: #00c9a7;
     color: white;
     cursor: pointer;
 }
 
 button:hover {
-    background: #ff4f81;
+    background: #00a389;
 }
 
-/* Layout */
-.row {
-    display: flex;
-    flex-wrap: wrap;
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
 }
 
-.col {
-    flex: 1;
-    min-width: 300px;
-}
-
-/* Chart */
-canvas {
-    background: white;
-    border-radius: 10px;
-    padding: 10px;
+ul {
+    line-height: 1.8;
 }
 </style>
 </head>
@@ -79,90 +64,124 @@ canvas {
 <body>
 
 <div class="container">
-
 <h1>💪 Wellness Tracker Dashboard</h1>
 
-<div class="row">
+<div class="grid">
 
 <!-- Weight Section -->
-<div class="col">
 <div class="card">
 <h2>📊 Weight Tracker</h2>
-
-<input type="number" id="weightInput" placeholder="Enter weight (kg)">
-<button onclick="addWeight()">Add</button>
+<input type="number" id="weight" placeholder="Enter weight (kg)">
+<button onclick="addWeight()">Add Weight</button>
 
 <canvas id="weightChart"></canvas>
 </div>
-</div>
 
 <!-- Calorie Section -->
-<div class="col">
 <div class="card">
-<h2>🔥 Calorie Calculator</h2>
-
-<input type="number" id="age" placeholder="Age"><br>
-<input type="number" id="height" placeholder="Height (cm)"><br>
-<input type="number" id="weightCal" placeholder="Weight (kg)"><br>
-
+<h2>🔥 Calorie Prediction</h2>
+<input type="number" id="age" placeholder="Age">
+<input type="number" id="height" placeholder="Height (cm)">
+<input type="number" id="weightCal" placeholder="Weight (kg)">
 <button onclick="calculateCalories()">Calculate</button>
 
-<h3 id="calorieResult"></h3>
+<p id="calorieResult"></p>
 </div>
+
+<!-- Diet Section -->
+<div class="card">
+<h2>🥗 Diet Recommendation</h2>
+<p id="dietPlan">Enter details to get diet plan</p>
 </div>
 
 </div>
-
 </div>
 
 <script>
-let weightData = [];
-let labels = [];
+let chart;
 
-const ctx = document.getElementById('weightChart').getContext('2d');
-
-const chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: labels,
-        datasets: [{
-            label: 'Weight Progress',
-            data: weightData,
-            borderColor: 'blue',
-            fill: false
-        }]
-    }
-});
-
+// 🔹 Add weight
 function addWeight() {
-    let weight = document.getElementById("weightInput").value;
+    let weight = document.getElementById("weight").value;
 
     fetch("/add_weight", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ weight: weight })
-    })
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({weight: weight})
+    }).then(() => loadWeights());
+}
+
+// 🔹 Load weights
+function loadWeights() {
+    fetch("/get_weights")
     .then(res => res.json())
     .then(data => {
-        labels.push("Entry " + (labels.length + 1));
-        weightData.push(weight);
-        chart.update();
-        document.getElementById("weightInput").value = "";
+        let weights = data.map(w => w.weight);
+        let labels = data.map((_, i) => i + 1);
+
+        if(chart) chart.destroy();
+
+        chart = new Chart(document.getElementById("weightChart"), {
+            type: "line",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: "Weight Progress",
+                    data: weights,
+                    borderWidth: 2
+                }]
+            }
+        });
     });
 }
 
+// 🔹 Calorie + Diet
 function calculateCalories() {
     let age = document.getElementById("age").value;
     let height = document.getElementById("height").value;
     let weight = document.getElementById("weightCal").value;
 
-    let calories = 10 * weight + 6.25 * height - 5 * age + 5;
+    let calories = 10*weight + 6.25*height - 5*age + 5;
 
     document.getElementById("calorieResult").innerText =
-        "Estimated Calories: " + Math.round(calories) + " kcal/day";
+        "Daily Calories Needed: " + Math.round(calories);
+
+    // 🔥 DIET PLAN (REAL FOODS)
+    let diet = "";
+
+    if(calories < 1800){
+        diet = `
+        🥗 Weight Loss Plan:
+        • Breakfast: Oats + Apple 🍎  
+        • Lunch: Brown rice + Grilled chicken / Paneer 🍗  
+        • Dinner: Salad + Soup 🥣  
+        • Snacks: Nuts + Green tea  
+        `;
+    } 
+    else if(calories < 2500){
+        diet = `
+        ⚖️ Maintenance Diet:
+        • Breakfast: Idli / Eggs + Milk 🥚  
+        • Lunch: Rice + Dal + Vegetables 🍛  
+        • Dinner: Roti + Curry  
+        • Snacks: Fruits 🍌  
+        `;
+    } 
+    else {
+        diet = `
+        💪 Weight Gain Plan:
+        • Breakfast: Peanut butter bread + Banana 🍌  
+        • Lunch: Rice + Chicken / Paneer 🍗  
+        • Dinner: Chapati + Curry  
+        • Snacks: Dry fruits + Milk 🥛  
+        `;
+    }
+
+    document.getElementById("dietPlan").innerText = diet;
 }
+
+// Load on start
+loadWeights();
 </script>
 
 </body>
