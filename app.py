@@ -54,40 +54,45 @@ def register_page():
     return render_template("register.html")
 
 # ------------------ AUTH ------------------
-@app.route('/register', methods=['POST'])
+@app.route('/register', methods=['GET', 'POST'])
 def register():
-    data = request.get_json(silent=True) or request.form
+    if request.method == 'POST':
+        data = request.form
 
-    email = data.get('email')
-    password = data.get('password')
+        email = data.get('email')
+        password = data.get('password')
 
-    if AppUser.query.filter_by(email=email).first():
-        return jsonify({"status": "error", "message": "User exists"})
+        # check if user exists
+        if AppUser.query.filter_by(email=email).first():
+            return render_template('register.html', error="User already exists")
 
-    hashed = generate_password_hash(password)
-    user = AppUser(email=email, password=hashed)
+        hashed = generate_password_hash(password)
+        user = AppUser(email=email, password=hashed)
 
-    db.session.add(user)
-    db.session.commit()
+        db.session.add(user)
+        db.session.commit()
 
-    session["user"] = user.id
-    return jsonify({"status": "success"})
+        return redirect('/login')
 
-@app.route('/login', methods=['POST'])
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    data = request.get_json(silent=True) or request.form
+    if request.method == 'POST':
+        data = request.form
 
-    email = data.get('email')
-    password = data.get('password')
+        email = data.get('email')
+        password = data.get('password')
 
-    user = AppUser.query.filter_by(email=email).first()
+        user = AppUser.query.filter_by(email=email).first()
 
-    if user and check_password_hash(user.password, password):
-        session["user"] = user.id
-        return jsonify({"status": "success"})
+        if user and check_password_hash(user.password, password):
+            session["user"] = user.id
+            return redirect('/dashboard')
 
-    return jsonify({"status": "error", "message": "Invalid login"})
+        return render_template('login.html', error="Invalid login")
 
+    return render_template('login.html')
 @app.route('/logout')
 def logout():
     session.pop("user", None)
@@ -131,6 +136,5 @@ def init_db():
 
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
