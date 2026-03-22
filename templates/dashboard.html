@@ -197,12 +197,31 @@ function calculateCalories() {
 
     let diet = "";
     if(calories < 1800){
-        diet = "🥗 Weight Loss Plan: Breakfast, Lunch, Dinner, Snacks";
+        diet = `
+        🥗 Weight Loss Plan:
+        • Breakfast: Oats + Apple 🍎  
+        • Lunch: Brown rice + Grilled chicken / Paneer 🍗  
+        • Dinner: Salad + Soup 🥣  
+        • Snacks: Nuts + Green tea  
+        `;
     } else if(calories < 2500){
-        diet = "⚖️ Maintenance Diet: Breakfast, Lunch, Dinner, Snacks";
+        diet = `
+        ⚖️ Maintenance Diet:
+        • Breakfast: Idli / Eggs + Milk 🥚  
+        • Lunch: Rice + Dal + Vegetables 🍛  
+        • Dinner: Roti + Curry  
+        • Snacks: Fruits 🍌  
+        `;
     } else {
-        diet = "💪 Weight Gain Plan: Breakfast, Lunch, Dinner, Snacks";
+        diet = `
+        💪 Weight Gain Plan:
+        • Breakfast: Peanut butter bread + Banana 🍌  
+        • Lunch: Rice + Chicken / Paneer 🍗  
+        • Dinner: Chapati + Curry  
+        • Snacks: Dry fruits + Milk 🥛  
+        `;
     }
+
 
     document.getElementById("dietPlan").innerText = diet;
 }
