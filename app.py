@@ -8,21 +8,23 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "supersecretkey")
 
 # ------------------ DATABASE ------------------
+
 database_url = os.environ.get("DATABASE_URL")
 if not database_url:
     raise ValueError("DATABASE_URL not set!")
 
-# Force SQLAlchemy to use psycopg3
+# Always force psycopg3
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql+psycopg://", 1)
+else:
+    # ensure it's using psycopg3 if someone pasted full URL
+    database_url = database_url.replace("postgresql://", "postgresql+psycopg://", 1)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Use init_app to ensure psycopg3 is used, prevents psycopg2 errors
-db = SQLAlchemy()
-db.init_app(app)
-
+# Initialize SQLAlchemy normally
+db = SQLAlchemy(app)
 # ------------------ MODELS ------------------
 class AppUser(db.Model):
     id = db.Column(db.Integer, primary_key=True)
