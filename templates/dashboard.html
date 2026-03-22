@@ -94,6 +94,17 @@ ul {
 <p id="dietPlan">Enter details to get diet plan</p>
 </div>
 
+<!-- BMI & Health Risk Section -->
+<div class="card">
+<h2>🩺 BMI & Health Risk</h2>
+<input type="number" id="weightBMI" placeholder="Weight (kg)">
+<input type="number" id="heightBMI" placeholder="Height (m)">
+<button onclick="calculateBMI()">Calculate BMI & Risk</button>
+
+<p id="bmiResult">BMI: -</p>
+<p id="riskResult">Health Risk: -</p>
+</div>
+
 </div>
 </div>
 
@@ -102,82 +113,119 @@ let chart;
 
 // 🔹 Add weight
 function addWeight() {
-    let weight = document.getElementById("weight").value;
+let weight = document.getElementById("weight").value;
 
-    fetch("/add_weight", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({weight: weight})
-    }).then(() => loadWeights());
+fetch("/add_weight", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({weight: weight})
+}).then(() => loadWeights());
 }
 
 // 🔹 Load weights
 function loadWeights() {
-    fetch("/get_weights")
-    .then(res => res.json())
-    .then(data => {
-        let weights = data.map(w => w.weight);
-        let labels = data.map((_, i) => i + 1);
+fetch("/get_weights")
+.then(res => res.json())
+.then(data => {
+    let weights = data.map(w => w.weight);
+    let labels = data.map((_, i) => i + 1);
 
-        if(chart) chart.destroy();
+    if(chart) chart.destroy();
 
-        chart = new Chart(document.getElementById("weightChart"), {
-            type: "line",
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: "Weight Progress",
-                    data: weights,
-                    borderWidth: 2
-                }]
-            }
-        });
+    chart = new Chart(document.getElementById("weightChart"), {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: "Weight Progress",
+                data: weights,
+                borderWidth: 2
+            }]
+        }
     });
+});
 }
 
 // 🔹 Calorie + Diet
 function calculateCalories() {
-    let age = document.getElementById("age").value;
-    let height = document.getElementById("height").value;
-    let weight = document.getElementById("weightCal").value;
+let age = document.getElementById("age").value;
+let height = document.getElementById("height").value;
+let weight = document.getElementById("weightCal").value;
 
-    let calories = 10*weight + 6.25*height - 5*age + 5;
+let calories = 10*weight + 6.25*height - 5*age + 5;
 
-    document.getElementById("calorieResult").innerText =
-        "Daily Calories Needed: " + Math.round(calories);
+document.getElementById("calorieResult").innerText =
+    "Daily Calories Needed: " + Math.round(calories);
 
-    // 🔥 DIET PLAN (REAL FOODS)
-    let diet = "";
+// 🔥 DIET PLAN (REAL FOODS)
+let diet = "";
 
-    if(calories < 1800){
-        diet = `
-        🥗 Weight Loss Plan:
-        • Breakfast: Oats + Apple 🍎  
-        • Lunch: Brown rice + Grilled chicken / Paneer 🍗  
-        • Dinner: Salad + Soup 🥣  
-        • Snacks: Nuts + Green tea  
-        `;
-    } 
-    else if(calories < 2500){
-        diet = `
-        ⚖️ Maintenance Diet:
-        • Breakfast: Idli / Eggs + Milk 🥚  
-        • Lunch: Rice + Dal + Vegetables 🍛  
-        • Dinner: Roti + Curry  
-        • Snacks: Fruits 🍌  
-        `;
-    } 
-    else {
-        diet = `
-        💪 Weight Gain Plan:
-        • Breakfast: Peanut butter bread + Banana 🍌  
-        • Lunch: Rice + Chicken / Paneer 🍗  
-        • Dinner: Chapati + Curry  
-        • Snacks: Dry fruits + Milk 🥛  
-        `;
-    }
+if(calories < 1800){
+    diet = `
+    🥗 Weight Loss Plan:
+    • Breakfast: Oats + Apple 🍎  
+    • Lunch: Brown rice + Grilled chicken / Paneer 🍗  
+    • Dinner: Salad + Soup 🥣  
+    • Snacks: Nuts + Green tea  
+    `;
+} 
+else if(calories < 2500){
+    diet = `
+    ⚖️ Maintenance Diet:
+    • Breakfast: Idli / Eggs + Milk 🥚  
+    • Lunch: Rice + Dal + Vegetables 🍛  
+    • Dinner: Roti + Curry  
+    • Snacks: Fruits 🍌  
+    `;
+} 
+else {
+    diet = `
+    💪 Weight Gain Plan:
+    • Breakfast: Peanut butter bread + Banana 🍌  
+    • Lunch: Rice + Chicken / Paneer 🍗  
+    • Dinner: Chapati + Curry  
+    • Snacks: Dry fruits + Milk 🥛  
+    `;
+}
 
-    document.getElementById("dietPlan").innerText = diet;
+document.getElementById("dietPlan").innerText = diet;
+}
+
+// 🔹 BMI & Health Risk
+function calculateBMI() {
+let weight = parseFloat(document.getElementById("weightBMI").value);
+let height = parseFloat(document.getElementById("heightBMI").value);
+
+if (!weight || !height) {
+    alert("Please enter both weight and height");
+    return;
+}
+
+// Call backend BMI calculator
+fetch("/calculate_bmi", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({weight: weight, height: height})
+})
+.then(res => res.json())
+.then(data => {
+    document.getElementById("bmiResult").innerText = "BMI: " + data.bmi;
+
+    // Call AI health risk predictor
+    return fetch("/predict_risk", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({bmi: data.bmi})
+    });
+})
+.then(res => res.json())
+.then(riskData => {
+    document.getElementById("riskResult").innerText = "Health Risk: " + riskData.risk;
+});
+
+// Clear inputs
+document.getElementById("weightBMI").value = '';
+document.getElementById("heightBMI").value = '';
 }
 
 // Load on start
