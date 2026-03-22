@@ -1,57 +1,168 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="/static/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wellness Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to right, #1d2671, #c33764);
+    color: white;
+}
+
+.container {
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Cards */
+.card {
+    background: rgba(255,255,255,0.1);
+    padding: 20px;
+    margin: 15px 0;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+}
+
+/* Inputs */
+input, button {
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    margin: 5px 0;
+}
+
+input {
+    width: 70%;
+}
+
+button {
+    background: #ff7eb3;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #ff4f81;
+}
+
+/* Layout */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.col {
+    flex: 1;
+    min-width: 300px;
+}
+
+/* Chart */
+canvas {
+    background: white;
+    border-radius: 10px;
+    padding: 10px;
+}
+</style>
 </head>
 
 <body>
 
-<h2>Dashboard</h2>
-<a href="/logout">Logout</a>
+<div class="container">
 
-<h3>Add Weight</h3>
-<form id="weightForm">
-    <input type="number" name="weight" placeholder="Weight" required>
-    <button>Add</button>
-</form>
+<h1>💪 Wellness Tracker Dashboard</h1>
 
-<canvas id="chart"></canvas>
+<div class="row">
+
+<!-- Weight Section -->
+<div class="col">
+<div class="card">
+<h2>📊 Weight Tracker</h2>
+
+<input type="number" id="weightInput" placeholder="Enter weight (kg)">
+<button onclick="addWeight()">Add</button>
+
+<canvas id="weightChart"></canvas>
+</div>
+</div>
+
+<!-- Calorie Section -->
+<div class="col">
+<div class="card">
+<h2>🔥 Calorie Calculator</h2>
+
+<input type="number" id="age" placeholder="Age"><br>
+<input type="number" id="height" placeholder="Height (cm)"><br>
+<input type="number" id="weightCal" placeholder="Weight (kg)"><br>
+
+<button onclick="calculateCalories()">Calculate</button>
+
+<h3 id="calorieResult"></h3>
+</div>
+</div>
+
+</div>
+
+</div>
 
 <script>
-document.getElementById("weightForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
+let weightData = [];
+let labels = [];
 
-    const formData = new URLSearchParams(new FormData(e.target));
+const ctx = document.getElementById('weightChart').getContext('2d');
 
-    await fetch("/add_weight", {
-        method: "POST",
-        headers: {"Content-Type": "application/x-www-form-urlencoded"},
-        body: formData
-    });
-
-    loadChart();
+const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Weight Progress',
+            data: weightData,
+            borderColor: 'blue',
+            fill: false
+        }]
+    }
 });
 
-async function loadChart() {
-    const res = await fetch("/get_weights");
-    const data = await res.json();
+function addWeight() {
+    let weight = document.getElementById("weightInput").value;
 
-    const ctx = document.getElementById("chart");
-
-    new Chart(ctx, {
-        type: "line",
-        data: {
-            labels: data.map((_, i) => "Entry " + (i+1)),
-            datasets: [{
-                label: "Weight",
-                data: data
-            }]
-        }
+    fetch("/add_weight", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ weight: weight })
+    })
+    .then(res => res.json())
+    .then(data => {
+        labels.push("Entry " + (labels.length + 1));
+        weightData.push(weight);
+        chart.update();
+        document.getElementById("weightInput").value = "";
     });
 }
 
-loadChart();
+function calculateCalories() {
+    let age = document.getElementById("age").value;
+    let height = document.getElementById("height").value;
+    let weight = document.getElementById("weightCal").value;
+
+    let calories = 10 * weight + 6.25 * height - 5 * age + 5;
+
+    document.getElementById("calorieResult").innerText =
+        "Estimated Calories: " + Math.round(calories) + " kcal/day";
+}
 </script>
 
 </body>
