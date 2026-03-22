@@ -117,6 +117,49 @@ def get_weights():
     weights = Weight.query.filter_by(user_id=session["user_id"]).all()
     return jsonify([w.weight for w in weights])
 
+#calculat_BMI
+
+@app.route('/calculate_bmi', methods=['POST'])
+def calculate_bmi():
+    if "user_id" not in session:
+        return jsonify({"error": "login required"}), 401
+
+    data = request.get_json()
+    weight = float(data.get("weight", 0))
+    height = float(data.get("height", 0))
+
+    if not weight or not height:
+        return jsonify({"error": "Invalid input"}), 400
+
+    bmi = round(weight / (height * height), 2)
+    return jsonify({"bmi": bmi})
+
+#RISKJ_PREDICTOR
+
+@app.route('/predict_risk', methods=['POST'])
+def predict_risk():
+    if "user_id" not in session:
+        return jsonify({"error": "login required"}), 401
+
+    data = request.get_json()
+    bmi = float(data.get("bmi", 0))
+
+    if not bmi:
+        return jsonify({"risk": "Unknown"})
+
+    # Simple risk categories
+    if bmi < 18.5:
+        risk = "Underweight"
+    elif bmi < 25:
+        risk = "Normal"
+    elif bmi < 30:
+        risk = "Overweight"
+    else:
+        risk = "Obese"
+
+    return jsonify({"risk": risk})
+
+
 # ------------------ INIT DB ------------------
 @app.route('/init_db')
 def init_db_route():

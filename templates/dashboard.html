@@ -3,115 +3,157 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wellness Dashboard</title>
+<title>Wellness Tracker Dashboard</title>
 
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
 body {
     margin: 0;
-    font-family: Arial;
-    background: linear-gradient(135deg, #1e1e2f, #2c2c54);
-    color: white;
+    font-family: 'Poppins', sans-serif;
+    background: #f5f7fa;
+    color: #333;
 }
 
 .container {
-    padding: 20px;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 20px;
 }
 
 h1 {
     text-align: center;
-    margin-bottom: 20px;
-}
-
-.card {
-    background: rgba(255,255,255,0.1);
-    padding: 20px;
-    border-radius: 15px;
-    margin-bottom: 20px;
-    backdrop-filter: blur(10px);
-}
-
-input, button {
-    padding: 10px;
-    border-radius: 10px;
-    border: none;
-    margin-top: 10px;
-}
-
-button {
-    background: #00c9a7;
-    color: white;
-    cursor: pointer;
-}
-
-button:hover {
-    background: #00a389;
+    margin-bottom: 30px;
+    color: #1e1e2f;
 }
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 25px;
 }
 
-ul {
-    line-height: 1.8;
+/* Professional card style */
+.card {
+    background: rgba(255,255,255,0.95);
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.2s ease;
 }
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card h2 {
+    margin-bottom: 15px;
+    font-weight: 600;
+    color: #1e1e2f;
+    display: flex;
+    align-items: center;
+}
+
+.card h2 img {
+    height: 30px;
+    margin-right: 10px;
+}
+
+input, button {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    margin-top: 10px;
+    width: 90%;
+    font-size: 16px;
+}
+
+button {
+    background: linear-gradient(90deg, #00c9a7, #00a389);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s ease;
+}
+
+button:hover {
+    background: linear-gradient(90deg, #00a389, #008c7c);
+}
+
+canvas {
+    margin-top: 15px;
+    border-radius: 15px;
+    background: #fafafa;
+    padding: 15px;
+}
+
+/* Section content */
+p {
+    margin-top: 10px;
+    line-height: 1.6;
+    text-align: left;
+}
+
 </style>
 </head>
 
 <body>
-
 <div class="container">
-<h1>💪 Wellness Tracker Dashboard</h1>
+    <h1>💪 Wellness Tracker Dashboard</h1>
 
-<div class="grid">
+    <div class="grid">
 
-<!-- Weight Section -->
-<div class="card">
-<h2>📊 Weight Tracker</h2>
-<input type="number" id="weight" placeholder="Enter weight (kg)">
-<button onclick="addWeight()">Add Weight</button>
-<canvas id="weightChart"></canvas>
-</div>
+        <!-- Weight Tracker -->
+        <div class="card">
+            <h2><img src="https://img.icons8.com/ios-filled/50/000000/weight.png"/>Weight Tracker</h2>
+            <input type="number" id="weight" placeholder="Enter weight (kg)">
+            <button onclick="addWeight()">Add Weight</button>
+            <canvas id="weightChart" height="250"></canvas>
+        </div>
 
-<!-- Calorie Section -->
-<div class="card">
-<h2>🔥 Calorie Prediction</h2>
-<input type="number" id="age" placeholder="Age">
-<input type="number" id="height" placeholder="Height (cm)">
-<input type="number" id="weightCal" placeholder="Weight (kg)">
-<button onclick="calculateCalories()">Calculate</button>
-<p id="calorieResult"></p>
-</div>
+        <!-- Calorie Prediction -->
+        <div class="card">
+            <h2><img src="https://img.icons8.com/ios-filled/50/000000/fire-element.png"/>Calorie Prediction</h2>
+            <input type="number" id="age" placeholder="Age">
+            <input type="number" id="height" placeholder="Height (cm)">
+            <input type="number" id="weightCal" placeholder="Weight (kg)">
+            <button onclick="calculateCalories()">Calculate</button>
+            <p id="calorieResult">Daily Calories Needed: -</p>
+        </div>
 
-<!-- Diet Section -->
-<div class="card">
-<h2>🥗 Diet Recommendation</h2>
-<p id="dietPlan">Enter details to get diet plan</p>
-</div>
+        <!-- Diet Recommendation -->
+        <div class="card">
+            <h2><img src="https://img.icons8.com/ios-filled/50/000000/salad.png"/>Diet Recommendation</h2>
+            <p id="dietPlan">Enter details to get diet plan</p>
+        </div>
 
-<!-- BMI & Health Risk Section -->
-<div class="card">
-<h2>🩺 BMI & Health Risk</h2>
-<input type="number" id="weightBMI" placeholder="Weight (kg)">
-<input type="number" id="heightBMI" placeholder="Height (m)">
-<button onclick="calculateBMI()">Calculate BMI & Risk</button>
-<p id="bmiResult">BMI: -</p>
-<p id="riskResult">Health Risk: -</p>
-</div>
+        <!-- BMI & Health Risk -->
+        <div class="card">
+            <h2><img src="https://img.icons8.com/ios-filled/50/000000/heart-health.png"/>BMI & Health Risk</h2>
+            <input type="number" id="weightBMI" placeholder="Weight (kg)">
+            <input type="number" id="heightBMI" placeholder="Height (m)">
+            <button onclick="calculateBMI()">Calculate BMI & Risk</button>
+            <p id="bmiResult">BMI: -</p>
+            <p id="riskResult">Health Risk: -</p>
+        </div>
 
-</div>
+    </div>
 </div>
 
 <script>
 let chart;
 
-// 🔹 Add weight
+// Add weight
 function addWeight() {
     let weight = document.getElementById("weight").value;
-
     fetch("/add_weight", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
@@ -119,12 +161,11 @@ function addWeight() {
     }).then(() => loadWeights());
 }
 
-// 🔹 Load weights
+// Load weights
 function loadWeights() {
     fetch("/get_weights")
     .then(res => res.json())
     .then(data => {
-        // ✅ Fixed: data is array of numbers from backend
         let weights = data;
         let labels = data.map((_, i) => i + 1);
 
@@ -135,16 +176,28 @@ function loadWeights() {
             data: {
                 labels: labels,
                 datasets: [{
-                    label: "Weight Progress",
+                    label: "Weight Progress (kg)",
                     data: weights,
-                    borderWidth: 2
+                    borderWidth: 3,
+                    borderColor: "#00c9a7",
+                    backgroundColor: "rgba(0,201,167,0.1)",
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 6
                 }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: true } },
+                scales: {
+                    y: { beginAtZero: false }
+                }
             }
         });
     });
 }
 
-// 🔹 Calorie + Diet
+// Calorie + Diet
 function calculateCalories() {
     let age = document.getElementById("age").value;
     let height = document.getElementById("height").value;
@@ -156,37 +209,18 @@ function calculateCalories() {
         "Daily Calories Needed: " + Math.round(calories);
 
     let diet = "";
-
     if(calories < 1800){
-        diet = `
-        🥗 Weight Loss Plan:
-        • Breakfast: Oats + Apple 🍎  
-        • Lunch: Brown rice + Grilled chicken / Paneer 🍗  
-        • Dinner: Salad + Soup 🥣  
-        • Snacks: Nuts + Green tea  
-        `;
+        diet = `🥗 Weight Loss Plan:\n• Breakfast: Oats + Apple 🍎\n• Lunch: Brown rice + Chicken/Paneer 🍗\n• Dinner: Salad + Soup 🥣\n• Snacks: Nuts + Green tea`;
     } else if(calories < 2500){
-        diet = `
-        ⚖️ Maintenance Diet:
-        • Breakfast: Idli / Eggs + Milk 🥚  
-        • Lunch: Rice + Dal + Vegetables 🍛  
-        • Dinner: Roti + Curry  
-        • Snacks: Fruits 🍌  
-        `;
+        diet = `⚖️ Maintenance Diet:\n• Breakfast: Idli / Eggs + Milk 🥚\n• Lunch: Rice + Dal + Vegetables 🍛\n• Dinner: Roti + Curry\n• Snacks: Fruits 🍌`;
     } else {
-        diet = `
-        💪 Weight Gain Plan:
-        • Breakfast: Peanut butter bread + Banana 🍌  
-        • Lunch: Rice + Chicken / Paneer 🍗  
-        • Dinner: Chapati + Curry  
-        • Snacks: Dry fruits + Milk 🥛  
-        `;
+        diet = `💪 Weight Gain Plan:\n• Breakfast: Peanut butter bread + Banana 🍌\n• Lunch: Rice + Chicken / Paneer 🍗\n• Dinner: Chapati + Curry\n• Snacks: Dry fruits + Milk 🥛`;
     }
 
     document.getElementById("dietPlan").innerText = diet;
 }
 
-// 🔹 BMI & Health Risk
+// BMI & Health Risk
 function calculateBMI() {
     let weight = parseFloat(document.getElementById("weightBMI").value);
     let height = parseFloat(document.getElementById("heightBMI").value);
